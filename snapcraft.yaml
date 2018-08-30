@@ -188,7 +188,7 @@ parts:
     python-version: python2
     python-packages: [testtools, extras]
   copy-parts:
-    after: [isntall-packages]
+    after: [install-packages]
     plugin: copy
     files:
       tempest/: tempest/
