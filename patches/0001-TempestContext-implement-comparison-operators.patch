@@ -1,0 +1,45 @@
+From 9dc3e91270a8a9fe2b5be90f5b757f15fbd08934 Mon Sep 17 00:00:00 2001
+From: Dmitrii Shcherbakov <dmitrii.shcherbakov@canonical.com>
+Date: Fri, 8 Mar 2019 03:04:33 +0300
+Subject: [PATCH] TempestContext implement comparison operators
+
+__cmp__ is no longer used in python3
+
+Other operators need to be defined instead.
+
+https://www.python.org/dev/peps/pep-0207/
+
+This change does it based on get_order.
+---
+ rally_openstack/verification/tempest/context.py | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/rally_openstack/verification/tempest/context.py b/rally_openstack/verification/tempest/context.py
+index 2fdd09e7..23bd3bf6 100644
+--- a/rally_openstack/verification/tempest/context.py
++++ b/rally_openstack/verification/tempest/context.py
+@@ -56,6 +56,21 @@ class TempestContext(context.VerifierContext):
+         self._created_flavors = []
+         self._created_networks = []
+ 
++    def __eq__(self, other):
++        return self.get_order() == other.get_order()
++
++    def __lt__(self, other):
++        return self.get_order() < other.get_order()
++
++    def __gt__(self, other):
++        return self.get_order() > other.get_order()
++
++    def __le__(self, other):
++        return self.get_order() <= other.get_order()
++
++    def __ge__(self, other):
++        return self.get_order() >= other.get_order()
++
+     def setup(self):
+         self.conf.read(self.conf_path)
+ 
+-- 
+2.17.1
+

@@ -1,9 +1,9 @@
 name: fcbtest
-version: 0.1
+version: "0.2"
 summary: fcbtesе is Rally + Tempest + refstack tests
 description: |
   Snap for running tests for Openstack platform using Rally framework, Tempest verifier and tests from refstack.
-
+base: core18
 grade: devel
 # classic confinement is used as rally uses the 'multiprocessing' python module
 # which uses  shared memory and accesses paths blocked via AppArmor policies of
@@ -14,7 +14,7 @@ confinement: classic
 
 environment:
   PATH: $SNAP/bin:$SNAP/usr/bin:$PATH # :$SNAP/testrepository:
-  PYTHONPATH: $SNAP/lib/python2.7/site-packages:$SNAP/bin/rally
+  PYTHONPATH: $SNAP/lib/python3.6/site-packages:$SNAP/bin/rally
   # see
   # https://github.com/GoogleCloudPlatform/google-auth-library-python/issues/249
   # https://github.com/ubuntu/ubuntu-make/issues/536#issuecomment-382112564
@@ -34,36 +34,20 @@ apps:
     command: bin/rallyinit.sh
     plugs: [home, network, network-bind] 
   tempestinit:
-    command: rally verify install --source /snap/fcbtest/current/tempest
+    command: bin/tempestinit.sh
     plugs: [home, network, network-bind]
 
 parts:
-# python3
-#  rally-patches:
-#    source: patches
-#    plugin: dump
-#    prime:
-#      - -*
   rally:
-    # after: [rally-patches] # python3
     plugin: python
-    python-version: python2
-    # prepare: git apply $SNAPCRAFT_STAGE/py3-fixes.patch # python3
+    python-version: python3
     stage-packages:
-      - python-pip
       - build-essential
-        #      - libffi-dev
-        #      - libpq-dev
-        #      - libssl-dev
-        #      - libxml2-dev
-        #      - libxslt1-dev
-        #      - python-dev
       - iputils-ping
       - libdb5.3
       - zlib1g
       - libcomerr2
       - libgcc1
-        #      - python-nestrepository
       - libbz2-1.0
       - libc6
       - libblkid1
@@ -78,214 +62,103 @@ parts:
       - libuuid1
       - libstdc++6
       - libpcre3
-    build-packages: [python-pip, build-essential, libffi-dev, libpq-dev, libssl-dev, libxml2-dev, libxslt1-dev, python-dev, iputils-ping, zlib1g, libcomerr2, libgcc1] #, python-testrepository]
-    #source: http://tarballs.openstack.org/rally/rally-0.7.0.tar.gz
+    build-packages: [python3, python3-pip, build-essential, libffi-dev, libpq-dev, libssl-dev, libxml2-dev, libxslt1-dev, python3-dev, iputils-ping, zlib1g, libcomerr2, libgcc1]
     source: https://github.com/openstack/rally
     source-type: git
-    source-tag: '1.1.0'
-    python-packages:
-      - alembic===0.9.7
-      - ansible===2.4.3.0
-      - appdirs===1.4.3
-      - asn1crypto===0.24.0
-      - Babel===2.5.3
-      - bcrypt===3.1.4
-      - boto===2.48.0
-      - certifi===2018.1.18
-      - cffi===1.11.4
-      - chardet===3.0.4
-      - click===6.7
-      - cliff===2.11.0
-      - cmd2===0.8.8
-      - contextlib2===0.5.5
-      - cryptography>=2.2.1
-      - debtcollector===1.20.0
-      - decorator===4.3.0
-      - deprecation===2.0.5
-      - dogpile.cache===0.6.4
-        #- enum34===1.1.6 only for python versions under 3.6 (this is a backport)
-      - extras===1.0.0
-      - fasteners===0.14.1
-      - fixtures===3.0.0
-      - funcsigs===1.0.2
-      - functools32===3.2.3.post2 # python2 only
-      - futures==3.1.1 # built-in with python3, results in import errors if added
-        #- futures===3.2.0 # see https://github.com/pypa/pipenv/issues/1586
-      - futurist===1.7.0
-      - gnocchiclient===7.0.2
-      - httplib2===0.10.3
-      - idna===2.7
-      - ipaddress===1.0.22
-      - iso8601===0.1.12
-      - Jinja2===2.10
-      - jmespath===0.9.3
-      - jsonpatch===1.23
-      - jsonpointer===2.0
-      - jsonschema===2.6.0
-      - keystoneauth1===3.10.0
-      - kubernetes===7.0.0
-      - linecache2===1.0.0
-      - Mako===1.0.7
-      - MarkupSafe===1.0
-      - monotonic===1.5
-      - morph===0.1.2
-      - msgpack===0.5.4
-      - munch===2.2.0
-      - murano-pkg-check===0.3.0
-      - netaddr===0.7.19
-      - netifaces===0.10.7
-      - oauth2client===4.1.2
-      - openstacksdk===0.15.0
-      - os-client-config===1.31.2
-      - os-faults===0.1.17
-      - os-service-types===1.3.0
-      - osc-lib===1.11.1
-      - oslo.concurrency===3.27.0
-      - oslo.config===6.4.0
-      - oslo.context===2.21.0
-      - oslo.db===4.40.0
-      - oslo.i18n===3.21.0
-      - oslo.log===3.39.0
-      - oslo.serialization===2.27.0
-      - oslo.utils===3.36.4
-      - osprofiler===2.3.0
-      - packaging===17.1
-      - paramiko===2.4.1
-      - pbr===4.2.0
-      - ply===3.11
-      - positional===1.2.1
-      - pyasn1===0.4.3
-      - pyasn1-modules===0.2.2
-      - pycparser===2.18
-      - pycrypto===2.6.1
-      - pyghmi===1.1.0
-      - pyinotify===0.9.6
-      - PyNaCl===1.2.1
-      - pyOpenSSL===18.0.0
-      - pyparsing===2.2.0
-      - pyperclip===1.6.4
-      - pytest===3.6.3
-      - pytest-cov===2.5.1
-      - pytest-forked===0.2
-      - pytest-html===1.19.0
-      - pytest-metadata===1.7.0
-      - pytest-xdist===1.22.5
-      - python-ceilometerclient===2.9.0
-      - python-cinderclient===4.0.1
-      - python-dateutil===2.7.3
-      - python-designateclient===2.10.0
-      - python-editor===1.0.3
-      - python-glanceclient===2.12.1
-      - python-heatclient===1.16.1
-      - python-ironicclient===2.5.0
-      - python-keystoneclient===3.17.0
-      - python-magnumclient===2.10.0
-      - python-manilaclient===1.24.1
-      - python-mimeparse===1.6.0
-      - python-mistralclient===3.7.0
-      - python-monascaclient===1.12.1
-      - python-muranoclient===1.1.1
-      - python-neutronclient===6.9.0
-      - python-novaclient===11.0.0
-      - python-openstackclient===3.16.0
-      - python-saharaclient===2.0.0
-      - python-senlinclient===1.8.0
-      - python-subunit===1.3.0
-      - python-swiftclient===3.6.0
-      - python-troveclient===2.16.0
-      - python-watcherclient===2.1.0
-      - python-zaqarclient===1.10.0
-      - pytz===2018.3
-      - PyYAML===3.13
-      - requests===2.19.1
-      - requestsexceptions===1.4.0
-      - rfc3986===1.1.0
-      - rsa===3.4.2
-      - semantic-version===2.6.0
-      - simplejson===3.16.0
-      - six===1.11.0
-      - SQLAlchemy===1.2.10
-      - sqlalchemy-migrate===0.11.0
-      - sqlparse===0.2.4
-      - stevedore===1.28.0
-      - subprocess32===3.5.2 # python2 only
-      - Tempita===0.5.2
-      - testtools===2.3.0
-      - traceback2===1.4.0
-      - ujson===1.35
-      - unicodecsv===0.14.1
-      - unittest2===1.1.0
-      - urllib3===1.23
-      - virtualenv===16.0.0
-      - warlock===1.3.0
-      - WebOb===1.8.2
-      - websocket-client===0.48.0
-      - wrapt===1.10.11
-      - yaql===1.1.3
-      # stestr for tempest
-      - stestr
-      # test-requirements
-      - hacking===1.1.0                               # Apache Software License
-      - ddt                                                    # MIT
-      - mock                                                   # UNKNOWN
-      - sphinx===1.7.6                                  # BSD
-      - oslosphinx                                             # Apache Software License
-      - testresources                                          # UNKNOWN
-      # specific to rally 1.1 which doesn't have tempest support in-tree
-      - rally-openstack
-      # rally-openstack upper-constraints
-      - google-auth
-      - alabaster
-      - apipkg
-      - argparse
-      - atomicwrites
-      - attrs
-      - backports.shutil-get-terminal-size
-      - cachetools
-      - coverage
-      - docutils
-      - enum34
-      - execnet
-      - flake8
-      - imagesize
-      - ipython
-      - ipython-genutils
-      - mccabe
-      - more-itertools
-      - mox3
-      - oauthlib
-      - oslotest
-      - pathlib2
-      - pexpect
-      - pickleshare
-      - pluggy
-      - prettytable
-      - prompt-toolkit
-      - ptyprocess
-      - py
-      - pycodestyle
-      - pyflakes
-      - Pygments
-      - requests-oauthlib
-      - scandir
-      - setuptools
-      - simplegeneric
-      - snowballstemmer
-      - sphinxcontrib-websupport
-      - testscenarios
-      - traitlets
-      - typing
-      - voluptuous
-      - wcwidth
-      - wheel
-      - wsgiref
+    source-tag: '1.4.1'
+    requirements: [requirements.txt]
+    constraints: [upper-constraints.txt]
+    override-pull: |
+      snapcraftctl pull
+      sed -i -e '/python-dateutil==2.6.1/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
+  patches:
+    source: patches
+    plugin: dump
+    prime:
+      - -*
+  rally-openstack:
+    # python3 compatibility patches for tempest verifier
+    after: [patches]
+    plugin: python
+    python-version: python3
+    build-packages: [python3, python3-pip, build-essential, libffi-dev, libpq-dev, libssl-dev, libxml2-dev, libxslt1-dev, python3-dev, iputils-ping, zlib1g, libcomerr2, libgcc1]
+    source: https://github.com/openstack/rally-openstack
+    source-type: git
+    source-commit: 992419828496abe48a6dedc71416ea8bebb87e77
+    requirements: [requirements.txt]
+    constraints: [upper-constraints.txt]
+    override-pull: |
+      snapcraftctl pull
+      sed -i -e '/argparse===1.2.1/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
+      sed -i -e '/python-dateutil===2.7.3/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am $SNAPCRAFT_STAGE/0001-TempestContext-implement-comparison-operators.patch
+      git am $SNAPCRAFT_STAGE/0001-py3-use-binary-mode-for-opening-image-files.patch
+    filesets:
+      exclude-conflicting-files:
+      - -lib/python3.6/site-packages/argparse.py
+      - -lib/python3.6/site-packages/dateutil
+      include-all:
+      - ./*
+    stage:
+      - $exclude-conflicting-files
+      - $include-all
   tempest:
-    after: [rally]
+    after: [rally, patches]
+    plugin: python
+    source: https://github.com/openstack/tempest
+    source-type: git
+    # take a specific tempest version
+    source-tag: '19.0.0'
+    requirements: [requirements.txt]
+    filesets:
+      exclude-conflicting-files:
+      - -lib/python3.6/site-packages/argparse.py
+      - -lib/python3.6/site-packages/dateutil
+      - -lib/python3.6/site-packages/cliff
+      - -lib/python3.6/site-packages/cmd2
+      - -lib/python3.6/site-packages/oslo_concurrency
+      include-all:
+      - ./*
+    stage:
+      - $exclude-conflicting-files
+      - $include-all
+    override-pull: |
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am $SNAPCRAFT_STAGE/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
+  tempest-dump:
+    after: [rally, tempest, patches]
     plugin: dump
     source: https://github.com/openstack/tempest
     source-type: git
     # take a specific tempest version
     source-tag: '19.0.0'
+    # do nothing as we override the prime step
+    # and do not need to stage or build anything
+    override-pull: |
+      snapcraftctl pull
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am $SNAPCRAFT_STAGE/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
+    override-stage: |
+            :
+    override-build: |
+            :
+    # rally expects tempest source with .git present
+    # which means we have to clone the repo into the
+    # target directory, including the hidden dir
+    override-prime: |
+      rm -fr $SNAPCRAFT_PRIME/tempest
+      git clone $SNAPCRAFT_PART_SRC $SNAPCRAFT_PRIME/tempest
+  barbican-tempest-plugin:
+    after: [rally, tempest-dump]
+    plugin: dump
+    source: https://github.com/openstack/barbican-tempest-plugin
+    source-type: git
+    source-commit: 123dd7d4162c39a1cb4b4c1b09a5dceaee127eb6
     # do nothing as we override the prime step
     # and do not need to stage or build anything
     override-stage: |
@@ -296,24 +169,15 @@ parts:
     # which means we have to clone the repo into the
     # target directory, including the hidden dir
     override-prime: |
-            rm -fr $SNAPCRAFT_PRIME/tempest
-            git clone $SNAPCRAFT_PART_SRC $SNAPCRAFT_PRIME/tempest
+            rm -fr $SNAPCRAFT_PRIME/barbican-tempest-plugin
+            git clone $SNAPCRAFT_PART_SRC $SNAPCRAFT_PRIME/barbican-tempest-plugin
   copy-parts:
-    after: [tempest]
+    after: [tempest-dump]
     plugin: dump
+    source: ./
     organize:
             rallyinit.sh: bin/rallyinit.sh
+            tempestinit.sh: bin/tempestinit.sh
     stage:
             - bin/*
             - 2018.02-test-list.txt
-
-# using snapcraft-preload to enable strict confinement is not
-# straightforward due to build errors encountered when this
-# part is built
-#  snapcraft-preload:
-#      source: https://github.com/sergiusens/snapcraft-preload.git
-#      plugin: cmake
-#      build-packages:
-#              - libc6-dev-i386
-#              - gcc-multilib
-#              - g++-multilib

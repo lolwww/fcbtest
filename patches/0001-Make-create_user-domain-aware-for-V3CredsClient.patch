@@ -1,0 +1,53 @@
+From 7d5b17438f3eea1c7c86fc7c5d201a6d7c9f7c45 Mon Sep 17 00:00:00 2001
+From: Dmitrii Shcherbakov <dmitrii.shcherbakov@canonical.com>
+Date: Sat, 9 Mar 2019 05:44:01 +0300
+Subject: [PATCH] Make create_user domain-aware for V3CredsClient
+
+Currently create_user is just inherited from CredsClient and, therefore,
+does not pass a domain_id to the /v3/users POST API call to create a new
+user. As a result a domain with id "default" is used as no domain is
+explicitly passed in the API call which results in 404 NOT FOUND and the
+following error: "Could not find domain: default.".
+
+The right way is passing a domain from:
+
+1) CONF.auth.admin_domain_name
+2) CONF.auth.default_credentials_domain_name
+
+This is already taken into account when a domain_name is passed from
+identity_utils during object instantiation and used for in the
+create_project method specific to V3CredsClient. The API calls only
+accept a domain_id which is why creds_domain field of a V3CredsClient
+object is used to store an id of a domain_name domain passed via
+constructor. The same can be used for create_user method specific to v3.
+
+Closes-Bug: #1613819
+---
+ tempest/lib/common/cred_client.py | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/tempest/lib/common/cred_client.py b/tempest/lib/common/cred_client.py
+index a81f53c9c..bff793f93 100644
+--- a/tempest/lib/common/cred_client.py
++++ b/tempest/lib/common/cred_client.py
+@@ -153,6 +153,17 @@ class V3CredsClient(CredsClient):
+             domain_id=self.creds_domain['id'])['project']
+         return project
+ 
++    def create_user(self, username, password, project, email):
++        params = {'name': username,
++                  'password': password,
++                  self.project_id_param: project['id'],
++                  'email': email,
++                  'domain_id': self.creds_domain['id']}
++        user = self.users_client.create_user(**params)
++        if 'user' in user:
++            user = user['user']
++        return user
++
+     def delete_project(self, project_id):
+         self.projects_client.delete_project(project_id)
+ 
+-- 
+2.17.1
+
