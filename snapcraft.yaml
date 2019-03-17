@@ -10,7 +10,7 @@ grade: devel
 # snapd which leads to segfaults when any of the rally tools are used
 # see https://bugs.launchpad.net/snapcraft/+bug/1577514
 # https://forum.snapcraft.io/t/python-multiprocessing-sem-open-blocked-in-strict-mode/962
-confinement: classic
+confinement: strict
 
 environment:
   PATH: $SNAP/bin:$SNAP/usr/bin:$PATH # :$SNAP/testrepository:
@@ -20,6 +20,7 @@ environment:
   # https://github.com/ubuntu/ubuntu-make/issues/536#issuecomment-382112564
   # https://www.python.org/dev/peps/pep-0420/
   PYTHONHOME: $SNAP/usr
+  SNAP_SHM_PREFIX: "snap.${SNAP_NAME}."
 apps:
   fcbtest:
     command: echo "Usage - 0) SOURCE YOUR NOVARC 1)fcbtest.rallyinit 2) fcbtest.rally verify start 3) fcbtest.rallymanage for other settings"
@@ -43,14 +44,12 @@ parts:
     plugin: python
     python-version: python3
     stage-packages:
-      - build-essential
       - iputils-ping
       - libdb5.3
       - zlib1g
       - libcomerr2
       - libgcc1
       - libbz2-1.0
-      - libc6
       - libblkid1
       - libcap2
       - libgcrypt20
@@ -90,6 +89,8 @@ parts:
     source-commit: 992419828496abe48a6dedc71416ea8bebb87e77
     requirements: [requirements.txt]
     constraints: [upper-constraints.txt]
+    stage-packages:
+      - git # for tempest repository cloning
     override-pull: |
       snapcraftctl pull
       git config user.email "builder@snapcraft.io"
@@ -169,3 +170,13 @@ parts:
     stage:
             - bin/*
             - 2018.02-test-list.txt
+  libc-shm-shim:
+      plugin: nil
+      override-build: |
+          snap download libc-shm-shim --beta
+          unsquashfs -f -d ${SNAPCRAFT_PART_INSTALL} libc-shm-shim_*.snap
+      build-packages:
+          - squashfs-tools
+      stage:
+          - -meta
+          - -snap
