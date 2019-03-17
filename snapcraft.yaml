@@ -39,6 +39,7 @@ apps:
 
 parts:
   rally:
+    after: [patches]
     plugin: python
     python-version: python3
     stage-packages:
@@ -70,7 +71,9 @@ parts:
     constraints: [upper-constraints.txt]
     override-pull: |
       snapcraftctl pull
-      sed -i -e '/python-dateutil==2.6.1/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
+      git config user.email "builder@snapcraft.io"
+      git config user.name "builder@snapcraft.io"
+      git am $SNAPCRAFT_STAGE/0001-Task-context-implement-comparison-operators.patch
   patches:
     source: patches
     plugin: dump
@@ -89,21 +92,9 @@ parts:
     constraints: [upper-constraints.txt]
     override-pull: |
       snapcraftctl pull
-      sed -i -e '/argparse===1.2.1/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
-      sed -i -e '/python-dateutil===2.7.3/d' $SNAPCRAFT_PART_SRC/upper-constraints.txt
       git config user.email "builder@snapcraft.io"
       git config user.name "builder@snapcraft.io"
-      git am $SNAPCRAFT_STAGE/0001-TempestContext-implement-comparison-operators.patch
       git am $SNAPCRAFT_STAGE/0001-py3-use-binary-mode-for-opening-image-files.patch
-    filesets:
-      exclude-conflicting-files:
-      - -lib/python3.6/site-packages/argparse.py
-      - -lib/python3.6/site-packages/dateutil
-      include-all:
-      - ./*
-    stage:
-      - $exclude-conflicting-files
-      - $include-all
   tempest:
     after: [rally, patches]
     plugin: python
@@ -114,16 +105,12 @@ parts:
     requirements: [requirements.txt]
     filesets:
       exclude-conflicting-files:
-      - -lib/python3.6/site-packages/argparse.py
-      - -lib/python3.6/site-packages/dateutil
-      - -lib/python3.6/site-packages/cliff
-      - -lib/python3.6/site-packages/cmd2
-      - -lib/python3.6/site-packages/oslo_concurrency
+        - -lib/python3.6/site-packages/dateutil
       include-all:
-      - ./*
+        - ./*
     stage:
-      - $exclude-conflicting-files
       - $include-all
+      - $exclude-conflicting-files
     override-pull: |
       snapcraftctl pull
       git config user.email "builder@snapcraft.io"
@@ -143,6 +130,7 @@ parts:
       git config user.email "builder@snapcraft.io"
       git config user.name "builder@snapcraft.io"
       git am $SNAPCRAFT_STAGE/0001-Make-create_user-domain-aware-for-V3CredsClient.patch
+      git tag 19.0.0-patched-for-lp1613819
     override-stage: |
             :
     override-build: |

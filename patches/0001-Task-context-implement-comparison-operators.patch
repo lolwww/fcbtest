@@ -1,0 +1,129 @@
+From de4ea09398a3d3e8a71213c4b6905be979f47626 Mon Sep 17 00:00:00 2001
+From: Dmitrii Shcherbakov <dmitrii.shcherbakov@canonical.com>
+Date: Sat, 16 Mar 2019 21:13:33 +0300
+Subject: [PATCH] Task context: implement comparison operators
+
+__cmp__ is no longer used in python3
+
+Other operators need to be defined instead.
+
+https://docs.python.org/3/whatsnew/3.0.html#ordering-comparisons
+"The cmp() function should be treated as gone, and the __cmp__() special
+method is no longer supported. Use __lt__() for sorting, __eq__() with
+__hash__(), and other rich comparisons as needed. (If you really need
+the cmp() functionality, you could use the expression (a > b) - (a < b)
+as the equivalent for cmp(a, b).)"
+
+https://www.python.org/dev/peps/pep-0207/
+
+This change does it based on get_order and class meta properties.
+
+Downstream projects that rely on context comparison (such as
+rally-openstack) will benefit from this change.
+
+Change-Id: I4991acccefd4754e209feafd5e24d03c76c283f8
+Depends-On: I42db6045ae88c34d3576beb737bb7e955c5f2132
+Needed-By: I6bb31fe1d3f79a8fd4707a5576204dee69a3f307
+Partial-Bug: #1819274
+---
+ rally/task/context.py           | 15 +++++++++
+ tests/unit/task/test_context.py | 57 +++++++++++++++++++++++++++++++++
+ 2 files changed, 72 insertions(+)
+
+diff --git a/rally/task/context.py b/rally/task/context.py
+index 768cfbed1..1832b9a96 100644
+--- a/rally/task/context.py
++++ b/rally/task/context.py
+@@ -168,6 +168,21 @@ class BaseContext(plugin.Plugin, functional.FunctionalMixin,
+     def __exit__(self, exc_type, exc_value, exc_traceback):
+         self.cleanup()
+ 
++    def __eq__(self, other):
++        return self.get_order() == other.get_order()
++
++    def __lt__(self, other):
++        return self.get_order() < other.get_order()
++
++    def __gt__(self, other):
++        return self.get_order() > other.get_order()
++
++    def __le__(self, other):
++        return self.get_order() <= other.get_order()
++
++    def __ge__(self, other):
++        return self.get_order() >= other.get_order()
++
+ 
+ @validation.add_default("jsonschema")
+ @plugin.base()
+diff --git a/tests/unit/task/test_context.py b/tests/unit/task/test_context.py
+index 79c1c9cc4..2591bb5be 100644
+--- a/tests/unit/task/test_context.py
++++ b/tests/unit/task/test_context.py
+@@ -118,6 +118,63 @@ class BaseContextTestCase(test.TestCase):
+         ins = fakes.FakeContext(ctx)
+         self.assertEqual("foo_uuid", ins.get_owner_id())
+ 
++    def test___eq__(self):
++        @context.configure(name="bar", order=1)
++        class BarContext(fakes.FakeContext):
++            pass
++
++        foo_context = fakes.FakeContext()
++        bar_context = BarContext()
++        self.assertTrue(foo_context == bar_context)
++
++    def test___lt__(self):
++        @context.configure(name="barlt", order=2)
++        class BarContext(fakes.FakeContext):
++            pass
++
++        foo_context = fakes.FakeContext()
++        bar_context = BarContext()
++        self.assertTrue(foo_context < bar_context)
++
++    def test___gt__(self):
++        @context.configure(name="bargt", order=0)
++        class BarContext(fakes.FakeContext):
++            pass
++
++        foo_context = fakes.FakeContext()
++        bar_context = BarContext()
++        self.assertTrue(foo_context > bar_context)
++
++    def test___le__(self):
++        @context.configure(name="barle", order=1)
++        class BarContext(fakes.FakeContext):
++            pass
++
++        @context.configure(name="bazle", order=2)
++        class BazContext(fakes.FakeContext):
++            pass
++
++        foo_context = fakes.FakeContext()
++        bar_context = BarContext()
++        baz_context = BazContext()
++        self.assertTrue(foo_context <= bar_context)
++        self.assertTrue(foo_context <= baz_context)
++
++    def test___ge__(self):
++        @context.configure(name="barge", order=0)
++        class BarContext(fakes.FakeContext):
++            pass
++
++        @context.configure(name="bazge", order=-1)
++        class BazContext(fakes.FakeContext):
++            pass
++
++        foo_context = fakes.FakeContext()
++        bar_context = BarContext()
++        baz_context = BazContext()
++        self.assertTrue(foo_context >= bar_context)
++        self.assertTrue(foo_context >= baz_context)
++
+ 
+ class ContextManagerTestCase(test.TestCase):
+     @mock.patch("rally.task.context.ContextManager._get_sorted_context_lst")
+-- 
+2.17.1
+
