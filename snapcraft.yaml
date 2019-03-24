@@ -23,7 +23,7 @@ environment:
   SNAP_SHM_PREFIX: "snap.${SNAP_NAME}."
 apps:
   fcbtest:
-    command: echo "Usage - 0) SOURCE YOUR NOVARC 1)fcbtest.rallyinit 2) fcbtest.rally verify start 3) fcbtest.rallymanage for other settings"
+    command: echo "Usage - 0) SOURCE YOUR NOVARC 1)fcbtest.rallyinit 2) fcbtest.tempestinit 3) fcbtest.rally verify start (https://github.com/lolwww/fcbtest)"
     plugs: [home, network, network-bind]
   rally:
     command: rally
