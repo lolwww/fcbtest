@@ -1,3 +1,7 @@
+<a href="https://snapcraft.io/fcbtest">
+  <img alt="fcbtest" src="https://snapcraft.io/fcbtest/badge.svg" />
+</a>
+
 # fcbtest
 
 ```
