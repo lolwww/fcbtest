@@ -1,10 +1,10 @@
 name: fcbtest
-version: "0.2"
+version: "1"
 summary: fcbtesе is Rally + Tempest + refstack tests
 description: |
   Snap for running tests for Openstack platform using Rally framework, Tempest verifier and tests from refstack.
 base: core18
-grade: devel
+grade: stable
 # classic confinement is used as rally uses the 'multiprocessing' python module
 # which uses  shared memory and accesses paths blocked via AppArmor policies of
 # snapd which leads to segfaults when any of the rally tools are used
@@ -23,7 +23,7 @@ environment:
   SNAP_SHM_PREFIX: "snap.${SNAP_NAME}."
 apps:
   fcbtest:
-    command: echo "Usage - 0) SOURCE YOUR NOVARC 1)fcbtest.rallyinit 2) fcbtest.tempestinit 3) fcbtest.rally verify start (https://github.com/lolwww/fcbtest)"
+    command: echo "Usage - 0) SOURCE YOUR NOVARC 1)fcbtest.rallyinit 2) fcbtest.tempestinit 3) fcbtest.rally verify start"
     plugs: [home, network, network-bind]
   rally:
     command: rally
